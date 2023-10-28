@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>URL Shortener</title>
+</head>
+
+<body>
+    <h1>URL Shortener</h1>
+    <form action="/shorten" method="post">
+        <label for="long_url">Enter a Long URL:</label>
+        <input type="text" name="long_url" id="long_url" />
+        <button type="button" onclick="shortenUrl()">Shorten</button>
+    </form>
+    <div id="short_url">
+        <p>Short URL: <a href="#" target="_blank" id="shortened_url"></a></p>
+    </div>
+
+    <h2>Search:</h2>
+    <input type="text" id="search" oninput="search()" placeholder="Search by keyword" />
+    <ul id="results"></ul>
+
+    <script>
+        function shortenUrl() {
+            var longUrl = document.getElementById("long_url").value;
+
+            fetch("/shorten", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: "long_url=" + longUrl,
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.short_url) {
+                        var shortenedUrl = document.getElementById("shortened_url");
+                        shortenedUrl.textContent = data.short_url;
+                        shortenedUrl.href = data.short_url;
+                        document.getElementById("short_url").style.display = "block";
+                    } else {
+                        document.getElementById("short_url").style.display = "none";
+                    }
+                });
+        }
+
+        function search() {
+            var term = document.getElementById("search").value;
+            var results = document.getElementById("results");
+            results.innerHTML = "";
+
+            fetch("/search?term=" + term)
+                .then((response) => response.json())
+                .then((data) => {
+                    data.forEach((item) => {
+                        var li = document.createElement("li");
+                        li.textContent = item.short + " - " + item.long;
+                        results.appendChild(li);
+                    });
+                });
+        }
+    </script>
+</body>
+
+</html>
